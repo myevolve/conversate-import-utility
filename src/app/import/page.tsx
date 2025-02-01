@@ -108,10 +108,12 @@ export default function ImportPage() {
           };
 
           const { api } = await import("@/lib/api");
+          console.log("Creating contact with data:", contactData);
           const result = await api.createContact(
             selectedAccount.id,
             contactData,
           );
+          console.log("Create contact result:", result);
 
           // Add labels if present
           if (result.success && result.contact?.id && formatted.labels) {
@@ -120,11 +122,13 @@ export default function ImportPage() {
             );
 
             if (validLabels.length > 0) {
+              console.log("Adding labels:", validLabels);
               await api.addLabelsToContact(
                 selectedAccount.id,
                 result.contact.id,
                 validLabels,
               );
+              console.log("Labels added successfully");
             }
 
             if (invalidLabels.length > 0) {
