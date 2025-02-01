@@ -10,6 +10,7 @@ import { FieldMapper } from "@/components/field-mapper";
 import { ImportProgress } from "@/components/import-progress";
 import { parseFile, validateAndFormatContact } from "@/lib/file-parser";
 import { useToast } from "@/components/ui/use-toast";
+import { validateAndFormatLabels } from "@/lib/label-utils";
 
 type ImportStep = "account" | "inbox" | "upload" | "mapping" | "importing";
 
@@ -100,12 +101,9 @@ export default function ImportPage() {
             continue;
           }
 
-          // Extract labels before creating contact
-          const { labels, ...contactFields } = formatted;
-
           // Add inbox_id to the contact data
           const contactData = {
-            ...contactFields,
+            ...formatted,
             inbox_id: selectedInbox.id,
           };
 
@@ -116,18 +114,29 @@ export default function ImportPage() {
           );
 
           // Add labels if present
-          if (
-            result.success &&
-            result.contact?.id &&
-            labels &&
-            Array.isArray(labels) &&
-            labels.length > 0
-          ) {
-            await api.addLabelsToContact(
-              selectedAccount.id,
-              result.contact.id,
-              labels,
+          if (result.success && result.contact?.id && formatted.labels) {
+            const { validLabels, invalidLabels } = validateAndFormatLabels(
+              formatted.labels,
             );
+
+            if (validLabels.length > 0) {
+              await api.addLabelsToContact(
+                selectedAccount.id,
+                result.contact.id,
+                validLabels,
+              );
+            }
+
+            if (invalidLabels.length > 0) {
+              errors.push({
+                row: index + 1,
+                data: row,
+                error: {
+                  type: "validation",
+                  message: `Contact created successfully, but the following labels were skipped due to invalid format: ${invalidLabels.join(", ")}. Labels can only contain letters, numbers, hyphens and underscores.`,
+                },
+              });
+            }
           }
 
           if (!result.success) {
