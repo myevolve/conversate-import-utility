@@ -7,7 +7,7 @@
     "Company_Website": "https://acme.example.com",
     "Role": "CEO",
     "Industry": "Technology",
-    "Labels": "VIP, High Priority, Follow Up"
+    "Labels": "VIP, high-priority, follow_up, invalid@label, another*invalid"
   },
   {
     "Name": "Jane Smith",
@@ -17,6 +17,6 @@
     "Company_Website": "https://techcorp.example.com",
     "Role": "CTO",
     "Industry": "Software",
-    "Labels": "New Lead, Tech Industry"
+    "Labels": "new-lead, tech_industry, spaces not allowed"
   }
 ]

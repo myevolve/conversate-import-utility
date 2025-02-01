@@ -151,6 +151,27 @@ export const CONTACT_FIELDS: ContactField[] = [
     label: "Labels",
     required: false,
     type: "text",
+    validate: (value) => {
+      if (!value) return true;
+      const labels = String(value)
+        .split(",")
+        .map((label) => label.trim())
+        .filter((label) => label.length > 0);
+
+      // Check if all labels match the allowed pattern
+      const validLabelPattern = /^[a-zA-Z0-9_-]+$/;
+      const invalidLabels = labels.filter(
+        (label) => !validLabelPattern.test(label),
+      );
+
+      if (invalidLabels.length > 0) {
+        throw new Error(
+          `Invalid label(s): ${invalidLabels.join(", ")}. Labels can only contain letters, numbers, hyphens and underscores.`,
+        );
+      }
+
+      return true;
+    },
     format: (value): string[] => {
       if (!value) return [];
       // Split by comma and clean up each label
