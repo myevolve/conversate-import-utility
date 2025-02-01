@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Email" value="sr@conversate.us">
+    <input type="password" id="password" placeholder="Password" value="Demo123456!">
+    <button type="submit">Login</button>
+  </form>
+
+  <pre id="output"></pre>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const output = document.getElementById('output');
+      
+      try {
+        const response = await axios.post('https://app.conversate.us/auth/sign_in', {
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+        }, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+
+        output.textContent = JSON.stringify({
+          status: response.status,
+          headers: response.headers,
+          data: response.data,
+        }, null, 2);
+      } catch (error) {
+        output.textContent = JSON.stringify({
+          error: error.message,
+          response: error.response?.data,
+        }, null, 2);
+      }
+    });
+  </script>
+</body>
+</html>

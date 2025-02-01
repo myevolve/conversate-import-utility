@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Login</title>
+</head>
+<body>
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Email" value="sr@conversate.us">
+    <input type="password" id="password" placeholder="Password" value="Demo123456!">
+    <button type="submit">Login</button>
+  </form>
+
+  <pre id="output"></pre>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const output = document.getElementById('output');
+      
+      try {
+        const response = await fetch('https://app.conversate.us/auth/sign_in', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: document.getElementById('email').value,
+            password: document.getElementById('password').value,
+          }),
+        });
+
+        const data = await response.json();
+        const headers = {};
+        response.headers.forEach((value, key) => {
+          headers[key] = value;
+        });
+
+        output.textContent = JSON.stringify({
+          status: response.status,
+          headers,
+          data,
+        }, null, 2);
+      } catch (error) {
+        output.textContent = JSON.stringify({
+          error: error.message,
+        }, null, 2);
+      }
+    });
+  </script>
+</body>
+</html>

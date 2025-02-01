@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <form id="loginForm">
+    <input type="email" id="email" placeholder="Email" value="sr@conversate.us">
+    <input type="password" id="password" placeholder="Password" value="Demo123456!">
+    <button type="submit">Login</button>
+  </form>
+
+  <pre id="output"></pre>
+
+  <script>
+    const axiosInstance = axios.create({
+      baseURL: 'https://app.conversate.us',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Origin': 'https://app.conversate.us',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST',
+        'Access-Control-Allow-Headers': '*',
+        'Access-Control-Allow-Credentials': 'true',
+      },
+      withCredentials: true,
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const output = document.getElementById('output');
+      
+      try {
+        const response = await axiosInstance.post('/auth/sign_in', {
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+        });
+
+        output.textContent = JSON.stringify({
+          status: response.status,
+          headers: response.headers,
+          data: response.data,
+        }, null, 2);
+      } catch (error) {
+        output.textContent = JSON.stringify({
+          error: error.message,
+          response: error.response?.data,
+        }, null, 2);
+      }
+    });
+  </script>
+</body>
+</html>

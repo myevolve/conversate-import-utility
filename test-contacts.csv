@@ -1,0 +1,6 @@
+Name,Email,Phone,Company_Name,Company_Website,Role,Industry
+John Doe,john@example.com,(555) 555-1212,Acme Inc,https://acme.example.com,CEO,Technology
+Jane Smith,jane@example.com,+44 20 7123 4567,TechCorp,https://techcorp.example.com,CTO,Technology
+Bob Wilson,bob@example.com,1-987-654-3210,StartupXYZ,https://startup.xyz,Developer,Software
+Alice Brown,alice@example.com,555.444.3333,Global Corp,https://global.example.com,Manager,Consulting
+Charlie Davis,charlie@example.com,+61 2 8765 4321,Aussie Tech,https://aussie.tech,Director,Technology
