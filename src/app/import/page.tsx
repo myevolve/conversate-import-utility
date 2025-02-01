@@ -1,22 +1,23 @@
 "use client";
 
-import { useState } from 'react';
-import { useAppStore } from '@/lib/store';
-import { AccountSelector } from '@/components/account-selector';
-import { InboxSelector } from '@/components/inbox-selector';
-import { FileUpload } from '@/components/file-upload';
-import { FieldMapper } from '@/components/field-mapper';
-import { ImportProgress } from '@/components/import-progress';
-import { parseFile, validateAndFormatContact } from '@/lib/file-parser';
-import { useToast } from '@/components/ui/use-toast';
+import { useState } from "react";
+import { useAppStore } from "@/lib/store";
+import { ImportError } from "@/lib/types";
+import { AccountSelector } from "@/components/account-selector";
+import { InboxSelector } from "@/components/inbox-selector";
+import { FileUpload } from "@/components/file-upload";
+import { FieldMapper } from "@/components/field-mapper";
+import { ImportProgress } from "@/components/import-progress";
+import { parseFile, validateAndFormatContact } from "@/lib/file-parser";
+import { useToast } from "@/components/ui/use-toast";
 
-type ImportStep = 'account' | 'inbox' | 'upload' | 'mapping' | 'importing';
+type ImportStep = "account" | "inbox" | "upload" | "mapping" | "importing";
 
 interface ImportFile {
   file: File;
   data: {
     headers: string[];
-    rows: Record<string, any>[];
+    rows: Record<string, string | number | boolean | null>[];
   };
   mappings?: { source: string; target: string | null }[];
 }
@@ -25,10 +26,10 @@ export default function ImportPage() {
   const { toast } = useToast();
   const selectedAccount = useAppStore((state) => state.selectedAccount);
   const selectedInbox = useAppStore((state) => state.selectedInbox);
-  const [currentStep, setCurrentStep] = useState<ImportStep>('account');
+  const [currentStep, setCurrentStep] = useState<ImportStep>("account");
   const [files, setFiles] = useState<ImportFile[]>([]);
   const [currentFileIndex, setCurrentFileIndex] = useState(0);
-  const [importErrors, setImportErrors] = useState<any[]>([]);
+  const [importErrors, setImportErrors] = useState<ImportError[]>([]);
   const [successCount, setSuccessCount] = useState(0);
 
   const handleFilesAccepted = async (acceptedFiles: File[]) => {
@@ -37,21 +38,23 @@ export default function ImportPage() {
         acceptedFiles.map(async (file) => ({
           file,
           data: await parseFile(file),
-        }))
+        })),
       );
       setFiles(parsedFiles);
-      setCurrentStep('mapping');
+      setCurrentStep("mapping");
     } catch (error) {
-      console.error('Error parsing files:', error);
+      console.error("Error parsing files:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to parse files. Please check the file format.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to parse files. Please check the file format.",
+        variant: "destructive",
       });
     }
   };
 
-  const handleMappingComplete = async (mappings: { source: string; target: string | null }[]) => {
+  const handleMappingComplete = async (
+    mappings: { source: string; target: string | null }[],
+  ) => {
     const updatedFiles = [...files];
     updatedFiles[currentFileIndex] = {
       ...updatedFiles[currentFileIndex],
@@ -64,14 +67,14 @@ export default function ImportPage() {
       setCurrentFileIndex(currentFileIndex + 1);
     } else {
       // All files mapped, start import
-      setCurrentStep('importing');
+      setCurrentStep("importing");
     }
   };
 
   const handleStartImport = async () => {
     if (!selectedAccount || !selectedInbox) return;
 
-    const errors: any[] = [];
+    const errors: ImportError[] = [];
     let imported = 0;
 
     for (const file of files) {
@@ -79,34 +82,44 @@ export default function ImportPage() {
 
       for (const [index, row] of file.data.rows.entries()) {
         try {
-          const { isValid, errors: validationErrors, formatted } = validateAndFormatContact(
-            row,
-            file.mappings
-          );
+          const {
+            isValid,
+            errors: validationErrors,
+            formatted,
+          } = validateAndFormatContact(row, file.mappings);
 
           if (!isValid) {
             errors.push({
               row: index + 1,
               data: row,
               error: {
-                type: 'validation',
-                message: validationErrors.join(', '),
+                type: "validation",
+                message: validationErrors.join(", "),
               },
             });
             continue;
           }
 
           // Add inbox_id to the contact data
-          formatted.inbox_id = selectedInbox.id;
+          const contactData = {
+            ...formatted,
+            inbox_id: selectedInbox.id,
+          };
 
-          const { api } = await import('@/lib/api');
-          const result = await api.createContact(selectedAccount.id, formatted);
-          
+          const { api } = await import("@/lib/api");
+          const result = await api.createContact(
+            selectedAccount.id,
+            contactData,
+          );
+
           if (!result.success) {
             errors.push({
               row: index + 1,
               data: row,
-              error: result.error,
+              error: result.error || {
+                type: "other",
+                message: "Unknown error occurred",
+              },
             });
           } else {
             imported++;
@@ -115,13 +128,14 @@ export default function ImportPage() {
           // Update progress after each contact
           setSuccessCount(imported);
           setImportErrors(errors);
-        } catch (error: any) {
+        } catch (err) {
+          const error = err as Error;
           errors.push({
             row: index + 1,
             data: row,
             error: {
-              type: 'other',
-              message: error.message || 'Unknown error occurred',
+              type: "other",
+              message: error.message || "Unknown error occurred",
             },
           });
           // Update errors immediately when an error occurs
@@ -131,7 +145,7 @@ export default function ImportPage() {
     }
 
     toast({
-      title: 'Import Complete',
+      title: "Import Complete",
       description: `Successfully imported ${imported} contacts. ${errors.length} errors occurred.`,
     });
   };
@@ -146,22 +160,22 @@ export default function ImportPage() {
   };
 
   const getCurrentStep = () => {
-    if (!selectedAccount) return 'account';
-    if (!selectedInbox) return 'inbox';
-    if (files.length === 0) return 'upload';
-    if (currentStep === 'importing') return 'importing';
-    return 'mapping';
+    if (!selectedAccount) return "account";
+    if (!selectedInbox) return "inbox";
+    if (files.length === 0) return "upload";
+    if (currentStep === "importing") return "importing";
+    return "mapping";
   };
 
   const renderStep = () => {
     switch (getCurrentStep()) {
-      case 'account':
+      case "account":
         return <AccountSelector />;
-      case 'inbox':
+      case "inbox":
         return <InboxSelector />;
-      case 'upload':
+      case "upload":
         return <FileUpload onFilesAccepted={handleFilesAccepted} />;
-      case 'mapping':
+      case "mapping":
         return files[currentFileIndex] ? (
           <FieldMapper
             headers={files[currentFileIndex].data.headers}
@@ -172,15 +186,15 @@ export default function ImportPage() {
                 setCurrentFileIndex(currentFileIndex - 1);
               } else {
                 setFiles([]);
-                setCurrentStep('upload');
+                setCurrentStep("upload");
               }
             }}
           />
         ) : null;
-      case 'importing':
+      case "importing":
         return (
           <ImportProgress
-            files={files.map(f => f.file)}
+            files={files.map((f) => f.file)}
             onRemoveFile={handleRemoveFile}
             onStartImport={handleStartImport}
             errors={importErrors}

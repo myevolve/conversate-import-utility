@@ -1,22 +1,21 @@
 "use client";
 
-import * as React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Progress } from '@/components/ui/progress';
-import { ScrollArea } from './ui/scroll-area';
-import { useToast } from './ui/use-toast';
-import { Download } from 'lucide-react';
-import Papa from 'papaparse';
+import * as React from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Button } from "./ui/button";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "./ui/scroll-area";
+import { useToast } from "./ui/use-toast";
+import { Download } from "lucide-react";
+import Papa from "papaparse";
 
-interface ImportError {
-  row: number;
-  data: Record<string, any>;
-  error: {
-    type: 'duplicate_phone' | 'duplicate_email' | 'validation' | 'other';
-    message: string;
-  };
-}
+import { ImportError } from "@/lib/types";
 
 interface ImportProgressProps {
   files: File[];
@@ -26,9 +25,9 @@ interface ImportProgressProps {
   successCount: number;
 }
 
-export function ImportProgress({ 
-  files, 
-  onRemoveFile, 
+export function ImportProgress({
+  files,
+  onRemoveFile,
   onStartImport,
   errors,
   successCount,
@@ -36,8 +35,9 @@ export function ImportProgress({
   const [importing, setImporting] = React.useState(false);
   const { toast } = useToast();
   const [startTime, setStartTime] = React.useState<Date | null>(null);
-  const [estimatedTimeRemaining, setEstimatedTimeRemaining] = React.useState<string>('');
-  const totalRows = files.reduce((acc, file) => acc + 1, 0);
+  const [estimatedTimeRemaining, setEstimatedTimeRemaining] =
+    React.useState<string>("");
+  const totalRows = files.length;
   const progress = totalRows > 0 ? (successCount / totalRows) * 100 : 0;
 
   React.useEffect(() => {
@@ -45,12 +45,12 @@ export function ImportProgress({
       setStartTime(new Date());
     } else if (!importing) {
       setStartTime(null);
-      setEstimatedTimeRemaining('');
+      setEstimatedTimeRemaining("");
     } else if (importing && startTime && successCount > 0) {
       const elapsed = (new Date().getTime() - startTime.getTime()) / 1000; // in seconds
       const rate = successCount / elapsed; // contacts per second
       const remaining = (totalRows - successCount) / rate; // seconds remaining
-      
+
       // Format remaining time
       if (remaining < 60) {
         setEstimatedTimeRemaining(`${Math.round(remaining)} seconds`);
@@ -68,9 +68,12 @@ export function ImportProgress({
       await onStartImport();
     } catch (error) {
       toast({
-        title: 'Import Error',
-        description: 'An error occurred during import. Please try again.',
-        variant: 'destructive',
+        title: "Import Error",
+        description:
+          error instanceof Error
+            ? error.message
+            : "An error occurred during import. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setImporting(false);
@@ -81,22 +84,22 @@ export function ImportProgress({
     if (errors.length === 0) return;
 
     // Convert errors to CSV format
-    const csvData = errors.map(error => ({
+    const csvData = errors.map((error) => ({
       Row: error.row,
-      'Error Type': error.error.type,
-      'Error Message': error.error.message,
+      "Error Type": error.error.type,
+      "Error Message": error.error.message,
       ...error.data, // Include the original row data
     }));
 
     // Generate CSV
     const csv = Papa.unparse(csvData);
-    
+
     // Create and trigger download
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'import-errors.csv');
+    link.setAttribute("href", url);
+    link.setAttribute("download", "import-errors.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -107,7 +110,7 @@ export function ImportProgress({
       <CardHeader>
         <CardTitle>Import Progress</CardTitle>
         <CardDescription>
-          {files.length} file{files.length === 1 ? '' : 's'} selected for import
+          {files.length} file{files.length === 1 ? "" : "s"} selected for import
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -139,14 +142,14 @@ export function ImportProgress({
             <>
               <Progress value={progress} />
               <p className="text-sm text-muted-foreground text-center">
-                Processing contacts... {Math.round(progress)}% ({successCount + errors.length} of {totalRows} contacts)
-                {estimatedTimeRemaining && ` • ${estimatedTimeRemaining} remaining`}
+                Processing contacts... {Math.round(progress)}% (
+                {successCount + errors.length} of {totalRows} contacts)
+                {estimatedTimeRemaining &&
+                  ` • ${estimatedTimeRemaining} remaining`}
               </p>
               <div className="text-sm text-muted-foreground text-center">
                 {successCount} contacts imported successfully
-                {errors.length > 0 && (
-                  <> • {errors.length} failed</>
-                )}
+                {errors.length > 0 && <> • {errors.length} failed</>}
               </div>
             </>
           )}
@@ -176,9 +179,14 @@ export function ImportProgress({
                   <ScrollArea className="h-[200px] rounded-md border p-4">
                     <div className="space-y-2">
                       {errors.map((error, index) => (
-                        <div key={index} className="text-sm border-b border-border pb-2 last:border-0">
+                        <div
+                          key={index}
+                          className="text-sm border-b border-border pb-2 last:border-0"
+                        >
                           <div className="flex justify-between">
-                            <span className="text-muted-foreground">Row {error.row}</span>
+                            <span className="text-muted-foreground">
+                              Row {error.row}
+                            </span>
                             <span className="text-xs px-2 py-1 rounded-full bg-destructive/10 text-destructive">
                               {error.error.type}
                             </span>

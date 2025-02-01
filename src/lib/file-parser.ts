@@ -1,33 +1,58 @@
-import * as XLSX from 'xlsx';
-import Papa from 'papaparse';
+import * as XLSX from "xlsx";
+import Papa from "papaparse";
+
+export interface ContactData {
+  name?: string;
+  email?: string;
+  phone_number?: string;
+  avatar_url?: string;
+  identifier?: string;
+  custom_attributes?: Record<string, string | number | boolean>;
+}
 
 export interface ParsedData {
   headers: string[];
-  rows: Record<string, any>[];
+  rows: Record<string, string | number | boolean | null>[];
+}
+
+export interface FormattedContact {
+  [key: string]:
+    | string
+    | number
+    | boolean
+    | Record<string, string | number | boolean>
+    | undefined;
+  name?: string;
+  email?: string;
+  phone_number?: string;
+  avatar_url?: string;
+  identifier?: string;
+  inbox_id?: number;
+  custom_attributes: Record<string, string | number | boolean>;
 }
 
 export interface ContactField {
   key: string;
   label: string;
   required: boolean;
-  type: 'text' | 'email' | 'phone' | 'url';
-  validate?: (value: any) => boolean;
-  format?: (value: any) => any;
+  type: "text" | "email" | "phone" | "url";
+  validate?: (value: unknown) => boolean;
+  format?: (value: unknown) => string | number | boolean | undefined;
 }
 
 export const CONTACT_FIELDS: ContactField[] = [
   {
-    key: 'name',
-    label: 'Name',
+    key: "name",
+    label: "Name",
     required: true,
-    type: 'text',
+    type: "text",
     format: (value) => String(value).trim(),
   },
   {
-    key: 'email',
-    label: 'Email',
+    key: "email",
+    label: "Email",
     required: false,
-    type: 'email',
+    type: "email",
     validate: (value) => {
       if (!value) return true;
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value));
@@ -35,22 +60,22 @@ export const CONTACT_FIELDS: ContactField[] = [
     format: (value) => String(value).toLowerCase().trim(),
   },
   {
-    key: 'phone_number',
-    label: 'Phone Number',
+    key: "phone_number",
+    label: "Phone Number",
     required: false,
-    type: 'phone',
+    type: "phone",
     validate: (value) => {
       if (!value) return true;
-      const cleaned = String(value).replace(/[^\d+]/g, '');
-      
+      const cleaned = String(value).replace(/[^\d+]/g, "");
+
       // Common country codes and their expected lengths (including country code)
       const COUNTRY_CODES = {
-        '1': { name: 'US/Canada', length: 11 },    // +1XXXXXXXXXX
-        '44': { name: 'UK', length: 12 },          // +44XXXXXXXXXX
-        '61': { name: 'Australia', length: 11 },   // +61XXXXXXXXX
-        '64': { name: 'New Zealand', length: 11 }, // +64XXXXXXXXX
-        '86': { name: 'China', length: 13 },       // +86XXXXXXXXXXX
-        '91': { name: 'India', length: 12 },       // +91XXXXXXXXXX
+        "1": { name: "US/Canada", length: 11 }, // +1XXXXXXXXXX
+        "44": { name: "UK", length: 12 }, // +44XXXXXXXXXX
+        "61": { name: "Australia", length: 11 }, // +61XXXXXXXXX
+        "64": { name: "New Zealand", length: 11 }, // +64XXXXXXXXX
+        "86": { name: "China", length: 13 }, // +86XXXXXXXXXXX
+        "91": { name: "India", length: 12 }, // +91XXXXXXXXXX
       };
 
       // If it's a 10-digit number, it's valid (will be formatted as US/Canada)
@@ -59,10 +84,13 @@ export const CONTACT_FIELDS: ContactField[] = [
       }
 
       // Check if it's a valid international format
-      if (cleaned.startsWith('+')) {
+      if (cleaned.startsWith("+")) {
         const withoutPlus = cleaned.substring(1);
         for (const [code, info] of Object.entries(COUNTRY_CODES)) {
-          if (withoutPlus.startsWith(code) && withoutPlus.length === info.length - 1) {
+          if (
+            withoutPlus.startsWith(code) &&
+            withoutPlus.length === info.length - 1
+          ) {
             return true;
           }
         }
@@ -70,35 +98,37 @@ export const CONTACT_FIELDS: ContactField[] = [
 
       return false;
     },
-    format: (value) => {
-      if (!value) return value;
-      const cleaned = String(value).replace(/[^\d+]/g, '');
-      
+    format: (value): string | undefined => {
+      if (!value) return undefined;
+      const cleaned = String(value).replace(/[^\d+]/g, "");
+
       // If it already starts with +, just clean it
-      if (cleaned.startsWith('+')) {
+      if (cleaned.startsWith("+")) {
         return cleaned;
       }
-      
+
       // If it starts with a country code without +, add it
-      for (const code of ['1', '44', '61', '64', '86', '91']) {
+      for (const code of ["1", "44", "61", "64", "86", "91"]) {
         if (cleaned.startsWith(code)) {
-          return '+' + cleaned;
+          return "+" + cleaned;
         }
       }
-      
+
       // If it's a 10-digit number, assume US/Canada
       if (cleaned.length === 10) {
-        return '+1' + cleaned;
+        return "+1" + cleaned;
       }
-      
-      throw new Error('Invalid phone number format. Please ensure the number includes a valid country code.');
+
+      throw new Error(
+        "Invalid phone number format. Please ensure the number includes a valid country code.",
+      );
     },
   },
   {
-    key: 'avatar_url',
-    label: 'Avatar URL',
+    key: "avatar_url",
+    label: "Avatar URL",
     required: false,
-    type: 'url',
+    type: "url",
     validate: (value) => {
       if (!value) return true;
       try {
@@ -110,31 +140,34 @@ export const CONTACT_FIELDS: ContactField[] = [
     },
   },
   {
-    key: 'identifier',
-    label: 'External ID',
+    key: "identifier",
+    label: "External ID",
     required: false,
-    type: 'text',
+    type: "text",
   },
 ];
 
 export async function parseFile(file: File): Promise<ParsedData> {
-  const ext = file.name.split('.').pop()?.toLowerCase();
+  const ext = file.name.split(".").pop()?.toLowerCase();
 
-  if (ext === 'json') {
+  if (ext === "json") {
     const text = await file.text();
-    const data = JSON.parse(text);
+    const data = JSON.parse(text) as Record<
+      string,
+      string | number | boolean | null
+    >[];
     if (Array.isArray(data)) {
       const headers = Array.from(
-        new Set(data.flatMap(obj => Object.keys(obj)))
+        new Set(data.flatMap((obj) => Object.keys(obj))),
       );
       return { headers, rows: data };
     }
-    throw new Error('JSON file must contain an array of objects');
+    throw new Error("JSON file must contain an array of objects");
   }
 
-  if (ext === 'csv') {
+  if (ext === "csv") {
     return new Promise((resolve, reject) => {
-      Papa.parse(file, {
+      Papa.parse<Record<string, string | number | boolean | null>>(file, {
         header: true,
         skipEmptyLines: true,
         complete: (results) => {
@@ -146,34 +179,37 @@ export async function parseFile(file: File): Promise<ParsedData> {
     });
   }
 
-  if (ext === 'xlsx' || ext === 'xls') {
+  if (ext === "xlsx" || ext === "xls") {
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer);
     const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-    const data = XLSX.utils.sheet_to_json(worksheet);
+    const data = XLSX.utils.sheet_to_json(worksheet) as Record<
+      string,
+      string | number | boolean | null
+    >[];
     const headers = Array.from(
-      new Set(data.flatMap(obj => Object.keys(obj)))
+      new Set(data.flatMap((obj) => Object.keys(obj))),
     );
     return { headers, rows: data };
   }
 
-  throw new Error('Unsupported file type');
+  throw new Error("Unsupported file type");
 }
 
 export function validateAndFormatContact(
-  data: Record<string, any>,
-  fieldMappings: { source: string; target: string | null }[]
-): { isValid: boolean; errors: string[]; formatted: Record<string, any> } {
+  data: Record<string, unknown>,
+  fieldMappings: { source: string; target: string | null }[],
+): { isValid: boolean; errors: string[]; formatted: FormattedContact } {
   const errors: string[] = [];
-  const formatted: Record<string, any> = {
+  const formatted: FormattedContact = {
     custom_attributes: {},
   };
 
   // Process mapped fields
   for (const mapping of fieldMappings) {
-    if (!mapping.target || mapping.target === 'custom') continue;
+    if (!mapping.target || mapping.target === "custom") continue;
 
-    const field = CONTACT_FIELDS.find(f => f.key === mapping.target);
+    const field = CONTACT_FIELDS.find((f) => f.key === mapping.target);
     if (!field) continue;
 
     const value = data[mapping.source];
@@ -194,15 +230,19 @@ export function validateAndFormatContact(
     }
 
     // Format value if formatter exists
-    formatted[field.key] = field.format ? field.format(value) : value;
+    const formattedValue = field.format ? field.format(value) : String(value);
+    if (formattedValue !== undefined) {
+      formatted[field.key] = formattedValue;
+    }
   }
 
   // Process custom attributes
-  const customFields = fieldMappings.filter(m => m.target === 'custom');
+  const customFields = fieldMappings.filter((m) => m.target === "custom");
   for (const mapping of customFields) {
     const value = data[mapping.source];
     if (value !== undefined && value !== null) {
-      formatted.custom_attributes[mapping.source] = value;
+      formatted.custom_attributes[mapping.source] =
+        typeof value === "object" ? JSON.stringify(value) : String(value);
     }
   }
 
