@@ -100,9 +100,12 @@ export default function ImportPage() {
             continue;
           }
 
+          // Extract labels before creating contact
+          const { labels, ...contactFields } = formatted;
+
           // Add inbox_id to the contact data
           const contactData = {
-            ...formatted,
+            ...contactFields,
             inbox_id: selectedInbox.id,
           };
 
@@ -116,14 +119,14 @@ export default function ImportPage() {
           if (
             result.success &&
             result.contact?.id &&
-            formatted.labels &&
-            Array.isArray(formatted.labels) &&
-            formatted.labels.length > 0
+            labels &&
+            Array.isArray(labels) &&
+            labels.length > 0
           ) {
             await api.addLabelsToContact(
               selectedAccount.id,
               result.contact.id,
-              formatted.labels,
+              labels,
             );
           }
 

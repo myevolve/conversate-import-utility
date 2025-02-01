@@ -105,7 +105,6 @@ export interface Contact {
   avatar_url?: string;
   identifier?: string;
   custom_attributes?: Record<string, string | number | boolean>;
-  labels?: string[];
 }
 
 export interface AuthHeaders {
