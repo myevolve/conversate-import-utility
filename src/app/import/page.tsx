@@ -112,6 +112,21 @@ export default function ImportPage() {
             contactData,
           );
 
+          // Add labels if present
+          if (
+            result.success &&
+            result.contact?.id &&
+            formatted.labels &&
+            Array.isArray(formatted.labels) &&
+            formatted.labels.length > 0
+          ) {
+            await api.addLabelsToContact(
+              selectedAccount.id,
+              result.contact.id,
+              formatted.labels,
+            );
+          }
+
           if (!result.success) {
             errors.push({
               row: index + 1,

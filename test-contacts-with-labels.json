@@ -1,0 +1,22 @@
+[
+  {
+    "Name": "John Doe",
+    "Email": "john@example.com",
+    "Phone": "(555) 555-1212",
+    "Company_Name": "Acme Inc",
+    "Company_Website": "https://acme.example.com",
+    "Role": "CEO",
+    "Industry": "Technology",
+    "Labels": "VIP, High Priority, Follow Up"
+  },
+  {
+    "Name": "Jane Smith",
+    "Email": "jane@example.com",
+    "Phone": "+44 20 7123 4567",
+    "Company_Name": "Tech Corp",
+    "Company_Website": "https://techcorp.example.com",
+    "Role": "CTO",
+    "Industry": "Software",
+    "Labels": "New Lead, Tech Industry"
+  }
+]

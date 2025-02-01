@@ -1,11 +1,12 @@
-import axios from 'axios';
+import axios from "axios";
 
-const BASE_URL = typeof window === 'undefined' ? 'https://app.conversate.us' : '/api';
+const BASE_URL =
+  typeof window === "undefined" ? "https://app.conversate.us" : "/api";
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
+    Accept: "application/json",
+    "Content-Type": "application/json",
   },
 });
 
@@ -46,7 +47,7 @@ export interface Inbox {
   csat_survey_enabled?: boolean;
   enable_auto_assignment?: boolean;
   out_of_office_message?: string | null;
-  working_hours?: any[];
+  working_hours?: Record<string, unknown>[];
   timezone?: string;
   callback_webhook_url?: string | null;
   unavailable_time?: number;
@@ -72,7 +73,7 @@ export interface Inbox {
   c_type?: string | null;
   hmac_token?: string;
   pre_chat_form_enabled?: boolean;
-  pre_chat_form_options?: Record<string, any>;
+  pre_chat_form_options?: Record<string, unknown>;
   ivr_tree?: string | null;
   ai_ivr_tree?: string | null;
   ivr_agent_tree?: string | null;
@@ -103,11 +104,12 @@ export interface Contact {
   phone_number?: string;
   avatar_url?: string;
   identifier?: string;
-  custom_attributes?: Record<string, any>;
+  custom_attributes?: Record<string, string | number | boolean>;
+  labels?: string[];
 }
 
 export interface AuthHeaders {
-  'access-token': string;
+  "access-token": string;
   client: string;
   uid: string;
 }
@@ -118,13 +120,13 @@ class ConversateAPI {
 
   private constructor() {
     // Initialize auth headers from cookies if available
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const accessToken = document.cookie.match(/access-token=([^;]+)/)?.[1];
       const client = document.cookie.match(/client=([^;]+)/)?.[1];
       const uid = document.cookie.match(/uid=([^;]+)/)?.[1];
 
       if (accessToken && client && uid) {
-        this.authHeaders = { 'access-token': accessToken, client, uid };
+        this.authHeaders = { "access-token": accessToken, client, uid };
       }
     }
   }
@@ -142,26 +144,26 @@ class ConversateAPI {
 
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
-      const response = await axiosInstance.post('/auth/sign_in', {
+      const response = await axiosInstance.post("/auth/sign_in", {
         email,
         password,
       });
 
       // Get auth headers
-      const accessToken = response.headers['access-token'];
-      const client = response.headers['client'];
-      const uid = response.headers['uid'];
-      const expiry = response.headers['expiry'];
-      const tokenType = response.headers['token-type'];
+      const accessToken = response.headers["access-token"];
+      const client = response.headers["client"];
+      const uid = response.headers["uid"];
+      const expiry = response.headers["expiry"];
+      const tokenType = response.headers["token-type"];
 
       if (!accessToken || !client || !uid) {
-        throw new Error('Missing authentication headers in response');
+        throw new Error("Missing authentication headers in response");
       }
 
       this.authHeaders = {
-        'access-token': accessToken,
-        'client': client,
-        'uid': uid,
+        "access-token": accessToken,
+        client: client,
+        uid: uid,
       };
 
       // Store auth headers in cookies
@@ -172,73 +174,106 @@ class ConversateAPI {
       if (tokenType) document.cookie = `token-type=${tokenType}; path=/`;
 
       return { data: response.data };
-    } catch (error: any) {
-      console.error('Login error:', error);
+    } catch (err) {
+      const error = err as Error;
+      console.error("Login error:", error);
       throw error;
     }
   }
 
   private get headers() {
     if (!this.authHeaders) {
-      throw new Error('Not authenticated. Please login first.');
+      throw new Error("Not authenticated. Please login first.");
     }
 
     return {
       ...this.authHeaders,
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     };
   }
 
   async getInboxes(accountId: number): Promise<Inbox[]> {
     try {
-      const response = await axiosInstance.get<{ payload?: Inbox[]; inboxes?: Inbox[] }>(`/api/v1/accounts/${accountId}/inboxes`, {
+      const response = await axiosInstance.get<{
+        payload?: Inbox[];
+        inboxes?: Inbox[];
+      }>(`/api/v1/accounts/${accountId}/inboxes`, {
         headers: this.headers,
       });
-      console.log('Get inboxes response:', response);
+      console.log("Get inboxes response:", response);
       return response.data.payload || response.data.inboxes || [];
     } catch (error) {
-      console.error('Get inboxes error:', error);
+      console.error("Get inboxes error:", error);
       throw error;
     }
   }
 
   async createInbox(accountId: number, name: string): Promise<Inbox> {
     try {
-      const response = await axiosInstance.post(`/api/v1/accounts/${accountId}/inboxes`, {
-        name,
-        channel: {
-          type: 'web_widget',
-          website_url: 'conversate.us',
-          welcome_title: 'Welcome to Conversate AI',
-          welcome_tagline: 'We make it simple to conversate, how can I help you?',
-          widget_color: '#009CE0',
+      const response = await axiosInstance.post(
+        `/api/v1/accounts/${accountId}/inboxes`,
+        {
+          name,
+          channel: {
+            type: "web_widget",
+            website_url: "conversate.us",
+            welcome_title: "Welcome to Conversate AI",
+            welcome_tagline:
+              "We make it simple to conversate, how can I help you?",
+            widget_color: "#009CE0",
+          },
         },
-      }, {
-        headers: this.headers,
-      });
+        {
+          headers: this.headers,
+        },
+      );
       return response.data.payload || response.data;
     } catch (error) {
-      console.error('Create inbox error:', error);
+      console.error("Create inbox error:", error);
       throw error;
     }
   }
 
-  async createContact(accountId: number, contact: Contact): Promise<{
+  async addLabelsToContact(
+    accountId: number,
+    contactId: number,
+    labels: string[],
+  ): Promise<void> {
+    try {
+      await axiosInstance.post(
+        `/api/v1/accounts/${accountId}/contacts/${contactId}/labels`,
+        { labels },
+        { headers: this.headers },
+      );
+    } catch (error) {
+      console.error("Add labels error:", error);
+      throw error;
+    }
+  }
+
+  async createContact(
+    accountId: number,
+    contact: Contact,
+  ): Promise<{
     success: boolean;
     contact?: Contact;
     error?: {
-      type: 'duplicate_phone' | 'duplicate_email' | 'other';
+      type: "duplicate_phone" | "duplicate_email" | "other";
       message: string;
     };
   }> {
     try {
-      console.log('Creating contact:', { accountId, contact });
-      const response = await axiosInstance.post(`/api/v1/accounts/${accountId}/contacts`, {
-        contact,
-      }, {
-        headers: this.headers,
-      });
-      console.log('Create contact response:', {
+      console.log("Creating contact:", { accountId, contact });
+      const response = await axiosInstance.post(
+        `/api/v1/accounts/${accountId}/contacts`,
+        {
+          contact,
+        },
+        {
+          headers: this.headers,
+        },
+      );
+      console.log("Create contact response:", {
         status: response.status,
         data: response.data,
       });
@@ -247,26 +282,29 @@ class ConversateAPI {
         success: true,
         contact: response.data.payload?.contact || response.data.contact,
       };
-    } catch (error: any) {
-      console.error('Create contact error:', error);
+    } catch (err) {
+      const error = err as Error & {
+        response?: { status: number; data: { message?: string } };
+      };
+      console.error("Create contact error:", error);
 
       if (error.response?.status === 422) {
         // Handle validation errors (duplicates)
-        const message = error.response.data.message?.toLowerCase() || '';
-        if (message.includes('phone number') && message.includes('taken')) {
+        const message = error.response.data.message?.toLowerCase() || "";
+        if (message.includes("phone number") && message.includes("taken")) {
           return {
             success: false,
             error: {
-              type: 'duplicate_phone',
-              message: 'Phone number already exists',
+              type: "duplicate_phone",
+              message: "Phone number already exists",
             },
           };
-        } else if (message.includes('email') && message.includes('taken')) {
+        } else if (message.includes("email") && message.includes("taken")) {
           return {
             success: false,
             error: {
-              type: 'duplicate_email',
-              message: 'Email already exists',
+              type: "duplicate_email",
+              message: "Email already exists",
             },
           };
         }
@@ -275,8 +313,11 @@ class ConversateAPI {
       return {
         success: false,
         error: {
-          type: 'other',
-          message: error.response?.data?.message || error.message || 'Unknown error occurred',
+          type: "other",
+          message:
+            error.response?.data?.message ||
+            error.message ||
+            "Unknown error occurred",
         },
       };
     }

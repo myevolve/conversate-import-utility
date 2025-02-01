@@ -20,6 +20,7 @@ export interface FormattedContact {
     | string
     | number
     | boolean
+    | string[]
     | Record<string, string | number | boolean>
     | undefined;
   name?: string;
@@ -37,7 +38,7 @@ export interface ContactField {
   required: boolean;
   type: "text" | "email" | "phone" | "url";
   validate?: (value: unknown) => boolean;
-  format?: (value: unknown) => string | number | boolean | undefined;
+  format?: (value: unknown) => string | number | boolean | string[] | undefined;
 }
 
 export const CONTACT_FIELDS: ContactField[] = [
@@ -144,6 +145,20 @@ export const CONTACT_FIELDS: ContactField[] = [
     label: "External ID",
     required: false,
     type: "text",
+  },
+  {
+    key: "labels",
+    label: "Labels",
+    required: false,
+    type: "text",
+    format: (value): string[] => {
+      if (!value) return [];
+      // Split by comma and clean up each label
+      return String(value)
+        .split(",")
+        .map((label) => label.trim())
+        .filter((label) => label.length > 0);
+    },
   },
 ];
 
