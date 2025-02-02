@@ -63,10 +63,19 @@ export function ImportProgress({
   }, [importing, startTime, successCount, totalRows]);
 
   const handleStartImport = async () => {
+    if (importing) return;
+
     setImporting(true);
     try {
+      console.log("Starting import...");
       await onStartImport();
+      console.log("Import completed successfully");
+      toast({
+        title: "Import Complete",
+        description: `Successfully imported ${successCount} contacts. ${errors.length} errors occurred.`,
+      });
     } catch (error) {
+      console.error("Import error:", error);
       toast({
         title: "Import Error",
         description:

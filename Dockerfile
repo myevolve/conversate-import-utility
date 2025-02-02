@@ -12,8 +12,8 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Expose the port
-EXPOSE 3000
+# Expose the port (default 3000)
+EXPOSE ${PORT:-3000}
 
 # Start the application
-CMD ["npm", "start"]
+CMD PORT=${PORT:-3000} npm start

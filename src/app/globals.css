@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 :root {
+  --radius: 0.5rem;
+}
+
+.light {
   --background: #ffffff;
   --foreground: #171717;
   --primary: #1f93ff;
@@ -18,7 +22,24 @@
   --border: #e5e7eb;
   --input: #e5e7eb;
   --ring: #1f93ff;
-  --radius: 0.5rem;
+}
+
+.dark {
+  --background: #171717;
+  --foreground: #ffffff;
+  --primary: #1f93ff;
+  --primary-foreground: #ffffff;
+  --secondary: #1f2937;
+  --secondary-foreground: #f3f4f6;
+  --muted: #1f2937;
+  --muted-foreground: #9ca3af;
+  --accent: #1f2937;
+  --accent-foreground: #f3f4f6;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #374151;
+  --input: #374151;
+  --ring: #1f93ff;
 }
 
 body {
