@@ -1,0 +1,23 @@
+[
+  {
+    "Name": "Test Contact 1",
+    "Email": "test.contact1@example.com",
+    "Phone": "+18585551001",
+    "Company_Name": "Test Company 1",
+    "Labels": "valid-label-1, test_label_1"
+  },
+  {
+    "Name": "Test Contact 2",
+    "Email": "test.contact2@example.com",
+    "Phone": "+18585551002",
+    "Company_Name": "Test Company 2",
+    "Labels": "invalid@label, spaces not allowed"
+  },
+  {
+    "Name": "Test Contact 3",
+    "Email": "test.contact3@example.com",
+    "Phone": "+18585551003",
+    "Company_Name": "Test Company 3",
+    "Labels": "valid-label-2, test_label_2"
+  }
+]

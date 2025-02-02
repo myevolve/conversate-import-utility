@@ -1,0 +1,6 @@
+name,email,phone_number,labels
+Format1,test1@example.com,+16195551001,test
+Format2,test2@example.com,6195551002,test
+Format3,test3@example.com,16195551003,test
+Format4,test4@example.com,(619) 555-1004,test
+Format5,test5@example.com,619-555-1005,test

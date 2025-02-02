@@ -11,20 +11,13 @@ A powerful utility for importing contacts into Conversate AI from various file f
 - **Custom Attributes**: Support for custom fields and attributes
 
 ### Phone Number Handling
-- **Smart Formatting**: Automatically formats phone numbers to the correct international format
+- **Smart Formatting**: Automatically formats US/Canada phone numbers to +1XXXXXXXXXX format
 - **Multiple Input Formats**:
-  - US Format: (555) 555-1212 → +15555551212
-  - International: +44 20 7123 4567 → +442071234567
-  - Hyphenated: 1-987-654-3210 → +19876543210
-  - Dotted: 555.444.3333 → +15554443333
-- **Country Code Support**:
-  - US/Canada (+1)
-  - UK (+44)
-  - Australia (+61)
-  - New Zealand (+64)
-  - China (+86)
-  - India (+91)
-  - And more...
+  - Full Format: +16195551001 → +16195551001 (used as is)
+  - 10-Digit: 6195551002 → +16195551002 (adds +1)
+  - 11-Digit: 16195551003 → +16195551003 (adds +)
+  - US Format: (619) 555-1004 → +16195551004 (cleans and formats)
+  - Hyphenated: 619-555-1005 → +16195551005 (cleans and formats)
 
 ### Progress Tracking
 - Real-time progress bar
@@ -33,6 +26,14 @@ A powerful utility for importing contacts into Conversate AI from various file f
 - Success/failure statistics
 - Detailed error reporting
 - Downloadable error reports
+
+### Label Support
+- **Format**: Comma-separated list of labels
+- **Validation**: Labels can only contain letters, numbers, hyphens, and underscores
+- **Examples**:
+  - Valid: test-label, another_label, label123
+  - Invalid: invalid@label, "quoted label", label with spaces
+- **Storage**: Labels are stored in a separate PostgreSQL database for efficient querying
 
 ### Custom Field Support
 - Company Name
@@ -106,8 +107,8 @@ npm run dev
 
 ### CSV
 ```csv
-Name,Email,Phone,Company_Name,Company_Website,Role,Industry
-John Doe,john@example.com,(555) 555-1212,Acme Inc,https://acme.example.com,CEO,Technology
+Name,Email,Phone,Company_Name,Company_Website,Role,Industry,Labels
+John Doe,john@example.com,(555) 555-1212,Acme Inc,https://acme.example.com,CEO,Technology,vip-customer,tech-industry
 ```
 
 ### JSON
@@ -120,7 +121,8 @@ John Doe,john@example.com,(555) 555-1212,Acme Inc,https://acme.example.com,CEO,T
     "Company_Name": "Acme Inc",
     "Company_Website": "https://acme.example.com",
     "Role": "CEO",
-    "Industry": "Technology"
+    "Industry": "Technology",
+    "Labels": "vip-customer, tech-industry"
   }
 ]
 ```

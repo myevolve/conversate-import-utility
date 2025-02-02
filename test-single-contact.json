@@ -1,0 +1,9 @@
+[
+  {
+    "Name": "Test Contact Single",
+    "Email": "test.single@example.com",
+    "Phone": "+18585551234",
+    "Company_Name": "Test Company Single",
+    "Labels": "test-label-1, test_label_2"
+  }
+]

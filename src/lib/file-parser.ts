@@ -69,59 +69,43 @@ export const CONTACT_FIELDS: ContactField[] = [
       if (!value) return true;
       const cleaned = String(value).replace(/[^\d+]/g, "");
 
-      // Common country codes and their expected lengths (including country code)
-      const COUNTRY_CODES = {
-        "1": { name: "US/Canada", length: 11 }, // +1XXXXXXXXXX
-        "44": { name: "UK", length: 12 }, // +44XXXXXXXXXX
-        "61": { name: "Australia", length: 11 }, // +61XXXXXXXXX
-        "64": { name: "New Zealand", length: 11 }, // +64XXXXXXXXX
-        "86": { name: "China", length: 13 }, // +86XXXXXXXXXXX
-        "91": { name: "India", length: 12 }, // +91XXXXXXXXXX
-      };
-
-      // If it's a 10-digit number, it's valid (will be formatted as US/Canada)
-      if (cleaned.length === 10 && /^\d+$/.test(cleaned)) {
-        return true;
-      }
-
-      // Check if it's a valid international format
-      if (cleaned.startsWith("+")) {
-        const withoutPlus = cleaned.substring(1);
-        for (const [code, info] of Object.entries(COUNTRY_CODES)) {
-          if (
-            withoutPlus.startsWith(code) &&
-            withoutPlus.length === info.length - 1
-          ) {
-            return true;
-          }
-        }
-      }
-
-      return false;
+      // Valid formats:
+      // 1. +1XXXXXXXXXX (12 chars)
+      // 2. XXXXXXXXXX (10 digits)
+      // 3. 1XXXXXXXXXX (11 digits)
+      return (
+        (cleaned.startsWith("+1") && cleaned.length === 12) ||
+        (cleaned.length === 10 && /^\d+$/.test(cleaned)) ||
+        (cleaned.length === 11 &&
+          cleaned.startsWith("1") &&
+          /^\d+$/.test(cleaned))
+      );
     },
     format: (value): string | undefined => {
       if (!value) return undefined;
       const cleaned = String(value).replace(/[^\d+]/g, "");
 
-      // If it already starts with +, just clean it
-      if (cleaned.startsWith("+")) {
+      // If it's already in the correct format, return it
+      if (cleaned.startsWith("+1") && cleaned.length === 12) {
         return cleaned;
       }
 
-      // If it starts with a country code without +, add it
-      for (const code of ["1", "44", "61", "64", "86", "91"]) {
-        if (cleaned.startsWith(code)) {
-          return "+" + cleaned;
-        }
-      }
-
-      // If it's a 10-digit number, assume US/Canada
-      if (cleaned.length === 10) {
+      // If it's a 10-digit number, add +1
+      if (cleaned.length === 10 && /^\d+$/.test(cleaned)) {
         return "+1" + cleaned;
       }
 
+      // If it starts with 1 and has 11 digits, add +
+      if (
+        cleaned.length === 11 &&
+        cleaned.startsWith("1") &&
+        /^\d+$/.test(cleaned)
+      ) {
+        return "+" + cleaned;
+      }
+
       throw new Error(
-        "Invalid phone number format. Please ensure the number includes a valid country code.",
+        "Invalid phone number format. Please provide a 10-digit number or use +1XXXXXXXXXX format.",
       );
     },
   },
@@ -259,16 +243,29 @@ export function validateAndFormatContact(
       continue;
     }
 
-    // Validate if validator exists
-    if (field.validate && !field.validate(value)) {
-      errors.push(`${field.label} is invalid`);
-      continue;
-    }
+    try {
+      // Validate if validator exists
+      if (field.validate && !field.validate(value)) {
+        errors.push(`${field.label} is invalid`);
+        continue;
+      }
 
-    // Format value if formatter exists
-    const formattedValue = field.format ? field.format(value) : String(value);
-    if (formattedValue !== undefined) {
-      formatted[field.key] = formattedValue;
+      // Format value if formatter exists
+      const formattedValue = field.format ? field.format(value) : String(value);
+      if (formattedValue !== undefined) {
+        if (field.key === "labels") {
+          // Handle labels specially - store as array
+          formatted.labels = Array.isArray(formattedValue)
+            ? formattedValue.map(String)
+            : [String(formattedValue)];
+        } else {
+          formatted[field.key] = formattedValue;
+        }
+      }
+    } catch (err) {
+      const error = err as Error;
+      errors.push(error.message);
+      continue;
     }
   }
 

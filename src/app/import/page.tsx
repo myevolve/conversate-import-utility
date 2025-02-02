@@ -123,12 +123,36 @@ export default function ImportPage() {
 
             if (validLabels.length > 0) {
               console.log("Adding labels:", validLabels);
-              await api.addLabelsToContact(
-                selectedAccount.id,
-                result.contact.id,
-                validLabels,
-              );
-              console.log("Labels added successfully");
+              try {
+                const response = await fetch("/api/labels", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    accountId: selectedAccount.id,
+                    contactId: result.contact.id,
+                    labels: validLabels,
+                  }),
+                });
+
+                if (!response.ok) {
+                  const errorData = await response.json();
+                  throw new Error(errorData.error || "Failed to add labels");
+                }
+
+                console.log("Labels added successfully");
+              } catch (labelError) {
+                console.error("Error adding labels:", labelError);
+                errors.push({
+                  row: index + 1,
+                  data: row,
+                  error: {
+                    type: "other",
+                    message: `Contact created successfully, but failed to add labels: ${(labelError as Error).message}`,
+                  },
+                });
+              }
             }
 
             if (invalidLabels.length > 0) {
@@ -239,7 +263,7 @@ export default function ImportPage() {
 
   return (
     <main className="min-h-screen bg-background p-8">
-      <div className="container mx-auto max-w-6xl space-y-8">
+      <div className="container mx-auto max-w-6xl space-y-8 bg-white shadow-sm rounded-lg p-6">
         {renderStep()}
       </div>
     </main>
