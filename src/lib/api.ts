@@ -3,7 +3,7 @@ import axios from "axios";
 const BASE_URL =
   typeof window === "undefined"
     ? "https://app.conversate.us"
-    : "http://localhost:53876/api";
+    : window.location.origin + "/api";
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
