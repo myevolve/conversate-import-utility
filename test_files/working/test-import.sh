@@ -13,11 +13,11 @@ echo "Testing import flow..."
 # 1. Create test CSV file
 cat > test-import.csv << EOL
 name,email,phone_number,labels
-Format1,test1a@example.com,+16195551001,test
-Format2,test2a@example.com,6195551002,test
-Format3,test3a@example.com,16195551003,test
-Format4,test4a@example.com,(619) 555-1004,test
-Format5,test5a@example.com,619-555-1005,test
+Format1,test1b@example.com,+16195552001,test
+Format2,test2b@example.com,6195552002,test
+Format3,test3b@example.com,16195552003,test
+Format4,test4b@example.com,(619) 555-2004,test
+Format5,test5b@example.com,619-555-2005,test
 EOL
 
 # 2. Login to get auth tokens
