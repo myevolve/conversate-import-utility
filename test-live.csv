@@ -1,0 +1,3 @@
+name,email,phone_number,labels
+Test Import 1,testimport1@example.com,+16195551001,test-label-1
+Test Import 2,testimport2@example.com,+16195551002,test-label-2

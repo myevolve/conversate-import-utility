@@ -1,7 +1,6 @@
 import axios from "axios";
 
-const BASE_URL =
-  typeof window === "undefined" ? "https://app.conversate.us" : "/api";
+const BASE_URL = "https://app.conversate.us";
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
   headers: {
