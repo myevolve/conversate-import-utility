@@ -180,6 +180,17 @@ class ConversateAPI {
   }
 
   private get headers() {
+    // Try to get auth headers from cookies if not already set
+    if (!this.authHeaders && typeof window !== "undefined") {
+      const accessToken = document.cookie.match(/access-token=([^;]+)/)?.[1];
+      const client = document.cookie.match(/client=([^;]+)/)?.[1];
+      const uid = document.cookie.match(/uid=([^;]+)/)?.[1];
+
+      if (accessToken && client && uid) {
+        this.authHeaders = { "access-token": accessToken, client, uid };
+      }
+    }
+
     if (!this.authHeaders) {
       throw new Error("Not authenticated. Please login first.");
     }
@@ -187,6 +198,9 @@ class ConversateAPI {
     return {
       ...this.authHeaders,
       "Content-Type": "application/json",
+      Accept: "application/json",
+      Origin: "https://app.conversate.us",
+      Referer: "https://app.conversate.us/app/login",
     };
   }
 
