@@ -6,7 +6,10 @@ const axiosInstance = axios.create({
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
+    Origin: "https://app.conversate.us",
+    Referer: "https://app.conversate.us/app/login",
   },
+  withCredentials: true,
 });
 
 export interface AuthResponse {
