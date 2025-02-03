@@ -239,11 +239,25 @@ class ConversateAPI {
     labels: string[],
   ): Promise<void> {
     try {
-      await axiosInstance.post(
-        `/api/v1/accounts/${accountId}/contacts/${contactId}/labels`,
-        { labels },
-        { headers: this.headers },
-      );
+      console.log("Adding labels:", { accountId, contactId, labels });
+      const response = await fetch("/api/labels", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accountId,
+          contactId,
+          labels,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to add labels");
+      }
+
+      console.log("Labels added successfully");
     } catch (error) {
       console.error("Add labels error:", error);
       throw error;
