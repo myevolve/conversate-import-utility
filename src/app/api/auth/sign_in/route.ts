@@ -25,17 +25,19 @@ export async function POST(request: NextRequest) {
       data,
     });
 
-    // Create response
+    // Create response with auth headers
     const headers = new Headers();
     headers.set("Content-Type", "application/json");
+    headers.set("Access-Control-Allow-Origin", "*");
+    headers.set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    headers.set("Access-Control-Allow-Headers", "*");
+    headers.set("Access-Control-Allow-Credentials", "true");
+    headers.set(
+      "Access-Control-Expose-Headers",
+      "access-token, client, uid, expiry, token-type",
+    );
 
-    // Create response with cookies
-    const res = NextResponse.json(data, {
-      status: response.status,
-      headers,
-    });
-
-    // Set auth cookies
+    // Forward auth headers
     const authHeaders = [
       "access-token",
       "client",
@@ -45,6 +47,28 @@ export async function POST(request: NextRequest) {
     ];
 
     authHeaders.forEach((header) => {
+      const value = response.headers.get(header);
+      if (value) {
+        headers.set(header, value);
+      }
+    });
+
+    // Create response with headers and cookies
+    const res = NextResponse.json(data, {
+      status: response.status,
+      headers,
+    });
+
+    // Set auth cookies
+    const cookieHeaders = [
+      "access-token",
+      "client",
+      "uid",
+      "expiry",
+      "token-type",
+    ];
+
+    cookieHeaders.forEach((header) => {
       const value = response.headers.get(header);
       if (value) {
         res.cookies.set(header, value, {
