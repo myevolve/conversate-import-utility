@@ -79,21 +79,11 @@ export function ImportProgress({
   }, [importing, startTime, successCount, totalRows]);
 
   const handleStartImport = async () => {
-    if (importing || files.length === 0) {
-      console.log("Import skipped:", { importing, files });
-      return;
-    }
+    if (importing || files.length === 0) return;
 
     setImporting(true);
-    setStartTime(new Date());
     try {
-      console.log("Starting import...");
       await onStartImport();
-      console.log("Import completed successfully");
-      toast({
-        title: "Import Complete",
-        description: `Successfully imported ${successCount} contacts. ${errors.length} errors occurred.`,
-      });
     } catch (error) {
       console.error("Import error:", error);
       toast({
@@ -106,7 +96,6 @@ export function ImportProgress({
       });
     } finally {
       setImporting(false);
-      setStartTime(null);
     }
   };
 
