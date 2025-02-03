@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { Pool } from "pg";
 
 const dbConfig = {
-  host: "production.co8f8q1zjvhi.us-east-1.rds.amazonaws.com",
-  port: 5432,
-  database: "conversate_production",
-  user: "conversate_admin",
-  password: "iIDoE5nVtQTndysj",
+  host: process.env.DB_HOST || "",
+  port: parseInt(process.env.DB_PORT || "5432"),
+  database: process.env.DB_NAME || "",
+  user: process.env.DB_USER || "",
+  password: process.env.DB_PASSWORD || "",
 };
 
 export async function POST(request: Request) {
