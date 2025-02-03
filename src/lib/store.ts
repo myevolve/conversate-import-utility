@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { api, Account, Inbox } from './api';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { api, Account, Inbox } from "./api";
 
 interface Settings {
   batchSize: number;
@@ -42,7 +42,10 @@ const DEFAULT_SETTINGS: Settings = {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      isAuthenticated: false,
+      isAuthenticated:
+        typeof window !== "undefined"
+          ? document.cookie.includes("access-token")
+          : false,
       user: null,
       accounts: [],
       selectedAccount: null,
@@ -55,18 +58,21 @@ export const useAppStore = create<AppState>()(
           const response = await api.login(email, password);
           const userData = response.data?.data;
           if (!userData) {
-            throw new Error('Invalid response from server');
+            throw new Error("Invalid response from server");
           }
 
           // Check if user has any accounts
-          const accounts = Array.isArray(userData.accounts) ? userData.accounts : [];
-          console.log('Accounts:', accounts);
+          const accounts = Array.isArray(userData.accounts)
+            ? userData.accounts
+            : [];
+          console.log("Accounts:", accounts);
           if (accounts.length === 0) {
-            throw new Error('Your login must be associated with at least one account to use the import service.');
+            throw new Error(
+              "Your login must be associated with at least one account to use the import service.",
+            );
           }
 
           // Store auth state and user data
-          document.cookie = 'isAuthenticated=true; path=/';
           set((state) => ({
             ...state,
             isAuthenticated: true,
@@ -82,9 +88,9 @@ export const useAppStore = create<AppState>()(
           }));
 
           // Redirect to import page
-          window.location.href = '/import';
+          window.location.href = "/import";
         } catch (error) {
-          console.error('Login error in store:', error);
+          console.error("Login error in store:", error);
           throw error;
         }
       },
@@ -92,12 +98,14 @@ export const useAppStore = create<AppState>()(
       setSelectedAccount: async (account: Account) => {
         try {
           const inboxes = await api.getInboxes(account.id);
-          console.log('Got inboxes:', inboxes);
-          
+          console.log("Got inboxes:", inboxes);
+
           // If no inboxes exist, reset auth and throw error
           if (!inboxes || inboxes.length === 0) {
             get().reset(); // Log them out
-            throw new Error('You must create at least one inbox in your account before using the import service. Please create an inbox and log in again.');
+            throw new Error(
+              "You must create at least one inbox in your account before using the import service. Please create an inbox and log in again.",
+            );
           }
 
           set((state) => ({
@@ -107,7 +115,7 @@ export const useAppStore = create<AppState>()(
             selectedInbox: null,
           }));
         } catch (error) {
-          console.error('Error selecting account:', error);
+          console.error("Error selecting account:", error);
           throw error;
         }
       },
@@ -124,12 +132,15 @@ export const useAppStore = create<AppState>()(
 
       reset: () => {
         // Clear all cookies
-        document.cookie = 'isAuthenticated=false; path=/';
-        document.cookie = 'access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        document.cookie = 'client=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        document.cookie = 'uid=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        document.cookie = 'expiry=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-        document.cookie = 'token-type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie =
+          "access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie =
+          "client=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie = "uid=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie =
+          "expiry=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie =
+          "token-type=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 
         set((state) => ({
           ...state,
@@ -142,17 +153,17 @@ export const useAppStore = create<AppState>()(
         }));
 
         // Redirect to login page
-        window.location.href = '/';
+        window.location.href = "/";
       },
     }),
     {
-      name: 'conversate-import-storage',
+      name: "conversate-import-storage",
       partialize: (state) => ({
         settings: state.settings,
         isAuthenticated: state.isAuthenticated,
         user: state.user,
         accounts: state.accounts,
       }),
-    }
-  )
+    },
+  ),
 );
