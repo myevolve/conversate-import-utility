@@ -92,6 +92,10 @@ export default function ImportPage() {
     const errors: ImportError[] = [];
     let imported = 0;
 
+    // Reset state
+    setSuccessCount(0);
+    setImportErrors([]);
+
     for (const file of files) {
       if (!file.mappings) {
         console.error("No mappings found for file:", file.file.name);
@@ -125,6 +129,7 @@ export default function ImportPage() {
                 message: validationErrors.join(", "),
               },
             });
+            setImportErrors(errors);
             continue;
           }
 
@@ -183,6 +188,7 @@ export default function ImportPage() {
                     message: `Contact created successfully, but failed to add labels: ${(labelError as Error).message}`,
                   },
                 });
+                setImportErrors(errors);
               }
             }
 
@@ -196,6 +202,7 @@ export default function ImportPage() {
                   message: `Contact created successfully, but the following labels were skipped due to invalid format: ${invalidLabels.join(", ")}. Labels can only contain letters, numbers, hyphens and underscores.`,
                 },
               });
+              setImportErrors(errors);
             }
           }
 
@@ -209,14 +216,15 @@ export default function ImportPage() {
                 message: "Unknown error occurred",
               },
             });
+            setImportErrors(errors);
           } else {
             imported++;
             console.log(`Successfully imported contact ${imported}`);
+            setSuccessCount(imported);
           }
 
-          // Update progress after each contact
-          setSuccessCount(imported);
-          setImportErrors(errors);
+          // Add a small delay to avoid rate limiting
+          await new Promise((resolve) => setTimeout(resolve, 100));
         } catch (err) {
           const error = err as Error;
           console.error("Error processing row:", error);
@@ -228,7 +236,6 @@ export default function ImportPage() {
               message: error.message || "Unknown error occurred",
             },
           });
-          // Update errors immediately when an error occurs
           setImportErrors(errors);
         }
       }
