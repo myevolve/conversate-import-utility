@@ -73,16 +73,42 @@ export default function ImportPage() {
   };
 
   const handleStartImport = async () => {
-    if (!selectedAccount || !selectedInbox) return;
+    if (!selectedAccount || !selectedInbox) {
+      console.error("No account or inbox selected");
+      toast({
+        title: "Error",
+        description: "Please select an account and inbox first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    console.log("Starting import with:", {
+      selectedAccount,
+      selectedInbox,
+      files,
+    });
 
     const errors: ImportError[] = [];
     let imported = 0;
 
     for (const file of files) {
-      if (!file.mappings) continue;
+      if (!file.mappings) {
+        console.error("No mappings found for file:", file.file.name);
+        continue;
+      }
+
+      console.log(
+        "Processing file:",
+        file.file.name,
+        "with mappings:",
+        file.mappings,
+      );
 
       for (const [index, row] of file.data.rows.entries()) {
         try {
+          console.log("Processing row:", index + 1, "Data:", row);
+
           const {
             isValid,
             errors: validationErrors,
@@ -90,6 +116,7 @@ export default function ImportPage() {
           } = validateAndFormatContact(row, file.mappings);
 
           if (!isValid) {
+            console.error("Validation errors:", validationErrors);
             errors.push({
               row: index + 1,
               data: row,
@@ -128,6 +155,10 @@ export default function ImportPage() {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
+                    "access-token":
+                      document.cookie.match(/access-token=([^;]+)/)?.[1] || "",
+                    client: document.cookie.match(/client=([^;]+)/)?.[1] || "",
+                    uid: document.cookie.match(/uid=([^;]+)/)?.[1] || "",
                   },
                   body: JSON.stringify({
                     accountId: selectedAccount.id,
@@ -156,6 +187,7 @@ export default function ImportPage() {
             }
 
             if (invalidLabels.length > 0) {
+              console.warn("Invalid labels:", invalidLabels);
               errors.push({
                 row: index + 1,
                 data: row,
@@ -168,6 +200,7 @@ export default function ImportPage() {
           }
 
           if (!result.success) {
+            console.error("Failed to create contact:", result.error);
             errors.push({
               row: index + 1,
               data: row,
@@ -178,6 +211,7 @@ export default function ImportPage() {
             });
           } else {
             imported++;
+            console.log(`Successfully imported contact ${imported}`);
           }
 
           // Update progress after each contact
@@ -185,6 +219,7 @@ export default function ImportPage() {
           setImportErrors(errors);
         } catch (err) {
           const error = err as Error;
+          console.error("Error processing row:", error);
           errors.push({
             row: index + 1,
             data: row,
@@ -199,6 +234,7 @@ export default function ImportPage() {
       }
     }
 
+    console.log("Import complete:", { imported, errors });
     toast({
       title: "Import Complete",
       description: `Successfully imported ${imported} contacts. ${errors.length} errors occurred.`,

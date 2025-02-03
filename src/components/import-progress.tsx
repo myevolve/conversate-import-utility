@@ -105,6 +105,27 @@ export function ImportProgress({
     }
   };
 
+  // Add debug logging
+  React.useEffect(() => {
+    console.log("Import Progress State:", {
+      importing,
+      files,
+      totalRows,
+      successCount,
+      errors,
+      startTime,
+      estimatedTimeRemaining,
+    });
+  }, [
+    importing,
+    files,
+    totalRows,
+    successCount,
+    errors,
+    startTime,
+    estimatedTimeRemaining,
+  ]);
+
   const downloadErrorReport = () => {
     if (errors.length === 0) return;
 
