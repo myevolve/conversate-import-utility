@@ -6,12 +6,35 @@ export function middleware(request: NextRequest) {
     request.cookies.get("isAuthenticated")?.value === "true";
   console.log("Middleware:", { isAuthenticated, cookies: request.cookies });
   const isImportPage = request.nextUrl.pathname.startsWith("/import");
+  const isApiRequest = request.nextUrl.pathname.startsWith("/api");
+
+  if (isApiRequest) {
+    const response = NextResponse.next();
+    response.headers.set(
+      "Access-Control-Allow-Origin",
+      "https://app.conversate.us",
+    );
+    response.headers.set(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,DELETE,OPTIONS",
+    );
+    response.headers.set(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Accept, Origin, Referer, access-token, client, uid, expiry, token-type",
+    );
+    response.headers.set("Access-Control-Allow-Credentials", "true");
+    response.headers.set(
+      "Access-Control-Expose-Headers",
+      "access-token, client, uid, expiry, token-type",
+    );
+    return response;
+  }
 
   if (isImportPage && !isAuthenticated) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  if (!isImportPage && isAuthenticated) {
+  if (!isImportPage && !isApiRequest && isAuthenticated) {
     return NextResponse.redirect(new URL("/import", request.url));
   }
 
