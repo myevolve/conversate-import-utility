@@ -1,5 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 
+function getCorsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "https://app.conversate.us",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers":
+      "Content-Type, Accept, Origin, Referer, access-token, client, uid, expiry, token-type",
+    "Access-Control-Allow-Credentials": "true",
+    "Access-Control-Expose-Headers":
+      "access-token, client, uid, expiry, token-type",
+  };
+}
+
+function getAuthResponseHeaders(response: Response) {
+  return {
+    "access-token": response.headers.get("access-token") || "",
+    client: response.headers.get("client") || "",
+    uid: response.headers.get("uid") || "",
+    expiry: response.headers.get("expiry") || "",
+    "token-type": response.headers.get("token-type") || "",
+    ...getCorsHeaders(),
+  };
+}
+
 async function getAuthHeaders(request: NextRequest) {
   const cookies = request.cookies;
   const headers = new Headers();
@@ -36,13 +59,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(data, {
     status: response.status,
-    headers: {
-      "access-token": response.headers.get("access-token") || "",
-      client: response.headers.get("client") || "",
-      uid: response.headers.get("uid") || "",
-      expiry: response.headers.get("expiry") || "",
-      "token-type": response.headers.get("token-type") || "",
-    },
+    headers: getAuthResponseHeaders(response),
   });
 }
 
@@ -62,23 +79,13 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json(data, {
     status: response.status,
-    headers: {
-      "access-token": response.headers.get("access-token") || "",
-      client: response.headers.get("client") || "",
-      uid: response.headers.get("uid") || "",
-      expiry: response.headers.get("expiry") || "",
-      "token-type": response.headers.get("token-type") || "",
-    },
+    headers: getAuthResponseHeaders(response),
   });
 }
 
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
-    headers: {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
+    headers: getCorsHeaders(),
   });
 }
