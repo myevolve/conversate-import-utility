@@ -37,7 +37,23 @@ export function ImportProgress({
   const [startTime, setStartTime] = React.useState<Date | null>(null);
   const [estimatedTimeRemaining, setEstimatedTimeRemaining] =
     React.useState<string>("");
-  const totalRows = files.length;
+  const [totalRows, setTotalRows] = React.useState(0);
+
+  React.useEffect(() => {
+    const calculateTotalRows = async () => {
+      let total = 0;
+      for (const file of files) {
+        if (file.name.endsWith(".csv")) {
+          const text = await file.text();
+          total += text.split("\n").length - 1;
+        } else {
+          total += 1;
+        }
+      }
+      setTotalRows(total);
+    };
+    calculateTotalRows();
+  }, [files]);
   const progress = totalRows > 0 ? (successCount / totalRows) * 100 : 0;
 
   React.useEffect(() => {

@@ -9,6 +9,10 @@
 .light {
   --background: #ffffff;
   --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
   --primary: #1f93ff;
   --primary-foreground: #ffffff;
   --secondary: #f3f4f6;
@@ -27,13 +31,17 @@
 .dark {
   --background: #171717;
   --foreground: #ffffff;
+  --card: #1f2937;
+  --card-foreground: #ffffff;
+  --popover: #1f2937;
+  --popover-foreground: #ffffff;
   --primary: #1f93ff;
   --primary-foreground: #ffffff;
-  --secondary: #1f2937;
+  --secondary: #374151;
   --secondary-foreground: #f3f4f6;
-  --muted: #1f2937;
+  --muted: #374151;
   --muted-foreground: #9ca3af;
-  --accent: #1f2937;
+  --accent: #374151;
   --accent-foreground: #f3f4f6;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;

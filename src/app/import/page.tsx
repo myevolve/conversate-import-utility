@@ -263,7 +263,7 @@ export default function ImportPage() {
 
   return (
     <main className="min-h-screen bg-background p-8">
-      <div className="container mx-auto max-w-6xl space-y-8 bg-white shadow-sm rounded-lg p-6">
+      <div className="container mx-auto max-w-6xl space-y-8 bg-background shadow-sm rounded-lg p-6">
         {renderStep()}
       </div>
     </main>
