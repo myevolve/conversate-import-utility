@@ -69,14 +69,32 @@ export async function GET(request: NextRequest) {
   const response = await fetch(url, {
     method: "GET",
     headers,
+    credentials: "include",
   });
 
   const data = await response.json();
+  const responseHeaders = getAuthResponseHeaders(response);
 
-  return NextResponse.json(data, {
+  // Create response with auth headers
+  const nextResponse = NextResponse.json(data, {
     status: response.status,
-    headers: getAuthResponseHeaders(response),
+    headers: responseHeaders,
   });
+
+  // Set cookies from auth headers
+  const accessToken = response.headers.get("access-token");
+  const client = response.headers.get("client");
+  const uid = response.headers.get("uid");
+  const expiry = response.headers.get("expiry");
+  const tokenType = response.headers.get("token-type");
+
+  if (accessToken) nextResponse.cookies.set("access-token", accessToken);
+  if (client) nextResponse.cookies.set("client", client);
+  if (uid) nextResponse.cookies.set("uid", uid);
+  if (expiry) nextResponse.cookies.set("expiry", expiry);
+  if (tokenType) nextResponse.cookies.set("token-type", tokenType);
+
+  return nextResponse;
 }
 
 export async function POST(request: NextRequest) {
@@ -89,14 +107,32 @@ export async function POST(request: NextRequest) {
     method: "POST",
     headers,
     body: JSON.stringify(body),
+    credentials: "include",
   });
 
   const data = await response.json();
+  const responseHeaders = getAuthResponseHeaders(response);
 
-  return NextResponse.json(data, {
+  // Create response with auth headers
+  const nextResponse = NextResponse.json(data, {
     status: response.status,
-    headers: getAuthResponseHeaders(response),
+    headers: responseHeaders,
   });
+
+  // Set cookies from auth headers
+  const accessToken = response.headers.get("access-token");
+  const client = response.headers.get("client");
+  const uid = response.headers.get("uid");
+  const expiry = response.headers.get("expiry");
+  const tokenType = response.headers.get("token-type");
+
+  if (accessToken) nextResponse.cookies.set("access-token", accessToken);
+  if (client) nextResponse.cookies.set("client", client);
+  if (uid) nextResponse.cookies.set("uid", uid);
+  if (expiry) nextResponse.cookies.set("expiry", expiry);
+  if (tokenType) nextResponse.cookies.set("token-type", tokenType);
+
+  return nextResponse;
 }
 
 export async function OPTIONS() {
