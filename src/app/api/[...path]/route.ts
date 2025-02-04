@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-function getCorsHeaders() {
+function getCorsHeaders(request: NextRequest) {
+  const origin = request.headers.get("origin") || "https://app.conversate.us";
   return {
-    "Access-Control-Allow-Origin": "https://app.conversate.us",
+    "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers":
       "Content-Type, Accept, Origin, Referer, access-token, client, uid, expiry, token-type",
@@ -12,8 +13,8 @@ function getCorsHeaders() {
   };
 }
 
-function getAuthResponseHeaders(response: Response) {
-  const headers = new Headers(getCorsHeaders());
+function getAuthResponseHeaders(response: Response, request: NextRequest) {
+  const headers = new Headers(getCorsHeaders(request));
 
   // Forward Set-Cookie headers
   const cookies = response.headers.getSetCookie();
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest) {
   });
 
   const data = await response.json();
-  const responseHeaders = getAuthResponseHeaders(response);
+  const responseHeaders = getAuthResponseHeaders(response, request);
 
   // Create response with auth headers
   const nextResponse = NextResponse.json(data, {
@@ -111,7 +112,7 @@ export async function POST(request: NextRequest) {
   });
 
   const data = await response.json();
-  const responseHeaders = getAuthResponseHeaders(response);
+  const responseHeaders = getAuthResponseHeaders(response, request);
 
   // Create response with auth headers
   const nextResponse = NextResponse.json(data, {
@@ -135,9 +136,9 @@ export async function POST(request: NextRequest) {
   return nextResponse;
 }
 
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
-    headers: getCorsHeaders(),
+    headers: getCorsHeaders(request),
   });
 }
