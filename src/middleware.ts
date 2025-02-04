@@ -15,6 +15,17 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/import", request.url));
   }
 
+  // Clear cookies if not authenticated
+  if (!isAuthenticated) {
+    const response = NextResponse.next();
+    response.cookies.delete("access-token");
+    response.cookies.delete("client");
+    response.cookies.delete("uid");
+    response.cookies.delete("expiry");
+    response.cookies.delete("token-type");
+    return response;
+  }
+
   return NextResponse.next();
 }
 
