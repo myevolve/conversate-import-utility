@@ -6,6 +6,12 @@ export function middleware(request: NextRequest) {
   console.log("Middleware:", { isAuthenticated, cookies: request.cookies });
   const isImportPage = request.nextUrl.pathname.startsWith("/import");
   const isLoginPage = request.nextUrl.pathname === "/";
+  const isApiRoute = request.nextUrl.pathname.startsWith("/api");
+
+  // Don't redirect API routes
+  if (isApiRoute) {
+    return NextResponse.next();
+  }
 
   if (isImportPage && !isAuthenticated) {
     return NextResponse.redirect(new URL("/", request.url));
