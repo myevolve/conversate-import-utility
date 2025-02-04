@@ -13,14 +13,17 @@ function getCorsHeaders() {
 }
 
 function getAuthResponseHeaders(response: Response) {
-  return {
-    "access-token": response.headers.get("access-token") || "",
-    client: response.headers.get("client") || "",
-    uid: response.headers.get("uid") || "",
-    expiry: response.headers.get("expiry") || "",
-    "token-type": response.headers.get("token-type") || "",
-    ...getCorsHeaders(),
-  };
+  const headers = new Headers(getCorsHeaders());
+
+  // Forward Set-Cookie headers
+  const cookies = response.headers.getSetCookie();
+  if (cookies.length > 0) {
+    cookies.forEach((cookie) => {
+      headers.append("Set-Cookie", cookie);
+    });
+  }
+
+  return Object.fromEntries(headers.entries());
 }
 
 async function getAuthHeaders(request: NextRequest) {
