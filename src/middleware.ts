@@ -13,14 +13,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (isImportPage && !isAuthenticated) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-
-  if (isLoginPage && isAuthenticated) {
-    return NextResponse.redirect(new URL("/import", request.url));
-  }
-
   // Clear cookies if not authenticated
   if (!isAuthenticated) {
     const response = NextResponse.next();
@@ -29,7 +21,18 @@ export function middleware(request: NextRequest) {
     response.cookies.delete("uid");
     response.cookies.delete("expiry");
     response.cookies.delete("token-type");
+
+    // Redirect to login if trying to access import page
+    if (isImportPage) {
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+
     return response;
+  }
+
+  // Redirect to import if already authenticated
+  if (isLoginPage) {
+    return NextResponse.redirect(new URL("/import", request.url));
   }
 
   return NextResponse.next();
