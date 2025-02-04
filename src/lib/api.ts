@@ -148,12 +148,28 @@ class ConversateAPI {
         password,
       });
 
-      // Get auth headers
-      const accessToken = response.headers["access-token"];
-      const client = response.headers["client"];
-      const uid = response.headers["uid"];
-      const expiry = response.headers["expiry"];
-      const tokenType = response.headers["token-type"];
+      // Get auth headers from Set-Cookie headers
+      const cookies = response.headers["set-cookie"] || [];
+      const accessToken = cookies
+        .find((c) => c.startsWith("access-token="))
+        ?.split("=")[1]
+        ?.split(";")[0];
+      const client = cookies
+        .find((c) => c.startsWith("client="))
+        ?.split("=")[1]
+        ?.split(";")[0];
+      const uid = cookies
+        .find((c) => c.startsWith("uid="))
+        ?.split("=")[1]
+        ?.split(";")[0];
+      const expiry = cookies
+        .find((c) => c.startsWith("expiry="))
+        ?.split("=")[1]
+        ?.split(";")[0];
+      const tokenType = cookies
+        .find((c) => c.startsWith("token-type="))
+        ?.split("=")[1]
+        ?.split(";")[0];
 
       if (!accessToken || !client || !uid) {
         throw new Error("Missing authentication headers in response");
