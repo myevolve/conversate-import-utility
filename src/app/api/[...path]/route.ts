@@ -23,6 +23,19 @@ function getAuthResponseHeaders(response: Response) {
     });
   }
 
+  // Forward auth headers
+  const accessToken = response.headers.get("access-token");
+  const client = response.headers.get("client");
+  const uid = response.headers.get("uid");
+  const expiry = response.headers.get("expiry");
+  const tokenType = response.headers.get("token-type");
+
+  if (accessToken) headers.set("access-token", accessToken);
+  if (client) headers.set("client", client);
+  if (uid) headers.set("uid", uid);
+  if (expiry) headers.set("expiry", expiry);
+  if (tokenType) headers.set("token-type", tokenType);
+
   return Object.fromEntries(headers.entries());
 }
 
