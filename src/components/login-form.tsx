@@ -1,27 +1,31 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
-import { Label } from './ui/label';
-import { useAppStore } from '@/lib/store';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { Label } from "./ui/label";
+import { useAppStore } from "@/lib/store";
 
 export function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const router = useRouter();
+  const [error, setError] = useState("");
   const login = useAppStore((state) => state.login);
   const isAuthenticated = useAppStore((state) => state.isAuthenticated);
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/import');
+      window.location.href = "/import";
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated]);
 
   if (isAuthenticated) {
     return null;
@@ -31,18 +35,22 @@ export function LoginForm() {
     e.preventDefault();
 
     if (!email || !password) {
-      setError('Please enter your email and password');
+      setError("Please enter your email and password");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       await login(email, password);
-    } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message || 'Invalid credentials or network error');
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Invalid credentials or network error",
+      );
     } finally {
       setLoading(false);
     }
@@ -81,13 +89,9 @@ export function LoginForm() {
                 required
               />
             </div>
-            {error && (
-              <div className="text-sm text-red-500">
-                {error}
-              </div>
-            )}
+            {error && <div className="text-sm text-red-500">{error}</div>}
             <Button type="submit" disabled={loading} className="w-full">
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? "Logging in..." : "Login"}
             </Button>
           </div>
         </form>
