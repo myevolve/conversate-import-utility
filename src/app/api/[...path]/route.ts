@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 function getCorsHeaders() {
   return {
-    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Origin": "http://localhost:53876",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers":
       "Content-Type, Accept, Origin, Referer, access-token, client, uid, expiry, token-type",
