@@ -42,10 +42,7 @@ const DEFAULT_SETTINGS: Settings = {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      isAuthenticated:
-        typeof window !== "undefined"
-          ? document.cookie.includes("access-token")
-          : false,
+      isAuthenticated: false,
       user: null,
       accounts: [],
       selectedAccount: null,
