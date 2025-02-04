@@ -5,12 +5,13 @@ export function middleware(request: NextRequest) {
   const isAuthenticated = request.cookies.has("access-token");
   console.log("Middleware:", { isAuthenticated, cookies: request.cookies });
   const isImportPage = request.nextUrl.pathname.startsWith("/import");
+  const isLoginPage = request.nextUrl.pathname === "/";
 
   if (isImportPage && !isAuthenticated) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  if (!isImportPage && isAuthenticated) {
+  if (isLoginPage && isAuthenticated) {
     return NextResponse.redirect(new URL("/import", request.url));
   }
 
